@@ -1,22 +1,8 @@
 import sounddevice as sd
 import numpy as np
 
-samplerate = 44100
-duration = 3
-
-print("Recording...")
-
-recording = sd.rec(int(samplerate * duration), samplerate, channels=1)
-
-sd.wait()
-
-print("Recording done. Playing back.")
-
-sd.play(recording, samplerate)
-
-sd.wait()
-
-print("Playing a (hopefully) smooth sine wave")
+def sine_wave(frequency, idx, frames):
+    return np.sin(2 * np.pi * frequency * np.arange(idx, idx + frames) / samplerate)
 
 class SineGenerator:
     def __init__(self):
@@ -26,9 +12,27 @@ class SineGenerator:
         if status:
             print(status)
 
-        outdata[:] = np.sin(2 * np.pi * 440 * (self.i + np.arange(frames)) / samplerate).reshape(-1, 1)
+        outdata[:] = sine_wave(440, self.i, frames).reshape(-1, 1)
         self.i += frames
 
-sg = SineGenerator()
-with sd.OutputStream(samplerate, channels=1, callback=sg.callback):
-    input("Press enter to quit.")
+samplerate = 44100
+duration = 3
+
+def main():
+    print(sine_wave(440, 0, 30))
+    return
+    print("Recording...")
+    recording = sd.rec(int(samplerate * duration), samplerate, channels=1)
+    sd.wait()
+
+    print("Recording done. Playing back.")
+    sd.play(recording, samplerate)
+    sd.wait()
+
+    print("Playing a (hopefully) smooth sine wave")
+    sg = SineGenerator()
+    with sd.OutputStream(samplerate, channels=1, callback=sg.callback):
+        input("Press enter to quit.")
+
+if __name__ == "__main__":
+    main()
